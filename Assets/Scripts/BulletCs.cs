@@ -6,20 +6,22 @@ public class BulletCs : MonoBehaviour
 {
     public GameObject bulletTrailPrefab;
     public GameObject explosionEffect;
+    Rigidbody rb;
 
     // Creamos un Delegate para informar a quien esté suscrito
     // de la explosión de la bala
     // P.ej. para que la cámara deje de seguirla
 
-    // Delegate con parámetros
+    // Firma del Delegate con parámetros
     public delegate void OnBulletDestroyedDelegate( GameObject bullet );
-    // Variable de tipo :delegate
+    // Creación del Delegate con esa firma
     public OnBulletDestroyedDelegate OnBulletDestroyed;
 
 
 
     void Start()
     {
+        rb = GetComponent<Rigidbody>();
     }
 
 
@@ -27,12 +29,23 @@ public class BulletCs : MonoBehaviour
     {
         SpawnTrail();
 
-        // Destruímos la bala en caso de que baje a -100 Y
+        // La velocidad es el cambio de posición respecto al tiempo
+        // Trabajando con vectores incluye la dirección del movimiento
+
+        Vector3 movementDirection = rb.velocity;
+
+        // Girando el Transform para que apunte
+        // en la misma dirección que su velocidad
+        transform.LookAt( movementDirection );
+
+
+        // Por si la bala sale del océano
+        // la destruímos en caso de que baje de -100 Y
 
         if( transform.position.y < -100 )
         {
-        // Es importante llamar a un delegate sólo si tiene función asignada
-        // Es buena práctica comprobar siempre antes de llamarlo
+        // Es importante publicar un delegate sólo si hay suscritos
+        // Es buena práctica comprobar siempre si hay listeners
 
             if( OnBulletDestroyed != null )
             {
@@ -62,13 +75,27 @@ public class BulletCs : MonoBehaviour
         Destroy( gameObject );
     }
 
+    // Estela tras el espaneo de la bala
     void SpawnTrail()
     {
+        Vector3 onda = transform.position - transform.forward * 2;
+        Vector3 estela = Random.insideUnitCircle * 0.3f;
+
         for( int i = 0; i < 20; i++ )
         {
+            // Instantiate(
+            //     bulletTrailPrefab,
+            //     transform.position - transform.forward * 2 + (Vector3)Random.insideUnitCircle * 0.3f,
+            //     Quaternion.identity);
+
+            // Instantiate(
+            //     bulletTrailPrefab,
+            //     onda + estela,
+            //     Quaternion.identity);
+
             Instantiate(
                 bulletTrailPrefab,
-                transform.position - transform.forward * 2 + (Vector3)Random.insideUnitCircle * 0.3f,
+                transform.position - transform.forward*(Random.Range(2, 4f)) + (Vector3)Random.insideUnitCircle*0.3f,
                 Quaternion.identity);
         }
     }
